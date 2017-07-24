@@ -1,0 +1,31 @@
+<html>
+
+  <head>
+    <script src="canvas-tiles.js"></script>
+  </head>
+
+  <body onload="ui();">
+    
+    <textarea id="predicates" rows=10 cols=80 ></textarea>
+
+    <p>Source text: <div id="source"></div></p>
+
+    <p>Tiles:<br>
+      <img id="heart" height=50 src="img/attraction.png">
+      <img id="dagger" height=50 src="img/weapon.png">
+      <img id="cat_u" width=50 src="img/cat_U.png">
+      <img id="cat_l" width=50 src="img/cat_L.png">
+      <img id="cat_r" width=50 src="img/cat_R.png">
+      <img id="cat_d" width=50 src="img/cat_D.png">
+      <img id="wall" width=50 src="img/wall.png">
+      <img id="exit" width=50 src="img/carpet.png">
+    </p>
+    <p><input id="generateButton" type="button" value="Draw map"/></p>
+
+    <p>Map:</p>
+
+    <p>
+    <canvas id="map" width=600 height=600> </canvas>
+    </p>
+  </body>
+</html>
