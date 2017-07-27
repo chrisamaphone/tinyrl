@@ -4,6 +4,8 @@ var tilesize = 50;
   var g = (Math.floor(Math.random()*255));
   var b = (Math.floor(Math.random()*255));
 
+var level = 1;
+
 function randomColor() {
 
   /* fix ahead of time
@@ -16,12 +18,13 @@ function randomColor() {
 }
 
 var tilegrid = [];
-var entities = ["dagger", "heart", "wall"]
+var entities = ["dagger", "heart", "wall", "lock", "key"]
 var player = {avatar: "cat_l",
-              x: 0,
-              y: 0,
-              hearts: 0,
-              swords: 0
+              x: 2,
+              y: 3,
+              hearts: 3,
+              // swords: 0,
+              keys: 0
               }
 
 function random_int(min, max) {
@@ -36,7 +39,8 @@ function random_element(arr) {
 
 function initialize_random(width, height) {
 
-  // randomize the color
+
+  // randomize the color for the player character
   r = (Math.floor(Math.random()*255));
   g = (Math.floor(Math.random()*255));
   b = (Math.floor(Math.random()*255));
@@ -55,6 +59,7 @@ function initialize_random(width, height) {
   var exit_x = random_int(0, width - 1);
   var exit_y = random_int(0, height - 1);
   tilegrid[exit_y][exit_x] = ["exit"];
+
 }
 
 function draw(canvas) {
@@ -81,7 +86,6 @@ function draw(canvas) {
       for(var entity_index = 0; entity_index < tilegrid[y][x].length; entity_index++) {
         var entity_name = tilegrid[y][x][entity_index];
         var img = document.getElementById(entity_name);
-        console.log("drawing " + entity_name);
         ctx.drawImage(img, x*tilesize, y*tilesize, tilesize, tilesize); 
       }
     }
@@ -152,109 +156,97 @@ function max_x(canvas) {
   return tile_width(canvas) - 1;
 }
 
-function collide(entity, canvas) {
-    // hearts and swords
-    if(entity == "heart") {
-      player.hearts++;
+function solid(entity) {
+  var ans = entity == "wall" || e
+}
+
+// collide with tile at (x,y)
+// assume x and y in bound (XXX could check this here to DRY)
+function collide(x, y, canvas) {
+
+    var entity = tilegrid[y][x][0];
+ 
+    // walls and locks and being out of hearts
+    if(entity == "wall" 
+        || (entity == "lock" && player.keys == 0)
+        || player.hearts <= 0) {
+     // do nothing 
+    } 
+    else { 
+      
+      // can pass through
+      rewriteTile(player.x, player.y, "empty", canvas);
+      player.x = x;
+      player.y = y;
+      rewriteTile(player.x, player.y, player.avatar, canvas);
+
+      // locks
+      if (entity == "lock") {
+        player.keys--;
+      }
+
+      // hearts, swords, and keys
+      if(entity == "key") {
+        player.keys++;
+      }
+      if(entity == "heart") {
+        player.hearts++;
+      }
+      if(entity == "dagger") {
+        player.hearts--; 
+      }
+      if(entity == "exit") {
+        console.log("got to exit!");
+        start_next_level(canvas);
+      }
     }
-    if(entity == "dagger") {
-      player.swords++; 
-    }
-    if(entity == "exit") {
-      console.log("got to exit!");
-      initialize_random(tile_width(canvas), tile_height(canvas));
-      draw(canvas);
-    }
+}
+
+// XXX code for generating next level goes here
+function start_next_level(canvas) {
+  level++;
+  initialize_random(tile_width(canvas), tile_height(canvas));
+  draw(canvas);
+  alert("Welcome to Level "+level);
 }
 
 function move_player_up(canvas) {
-  console.log("up");
-
+  player.avatar = "cat_u";
+  rewriteTile(player.x, player.y, player.avatar, canvas);
   if(player.y > 0) {
-
-    var collision_tile = tilegrid[player.y-1][player.x][0];
-    
-    // if we can pass thru, do so
-    if(collision_tile != "wall") {
-      rewriteTile(player.x, player.y, "empty", canvas);
-      player.y--;
-      collide(collision_tile, canvas);
-    } 
-    player.avatar = "cat_u";
-    rewriteTile(player.x, player.y, player.avatar, canvas); 
-
+    collide(player.x, player.y-1, canvas);
   }
-
-  // else, no movement
-
 }
-
 
 
 function move_player_down(canvas) {
-  console.log("down");
-
+  player.avatar = "cat_d";
+  rewriteTile(player.x, player.y, player.avatar, canvas);
   if(player.y < max_y(canvas)) {
-    var collision_tile = tilegrid[player.y+1][player.x][0];
-    
-    // if we can pass thru, do so
-    if(collision_tile != "wall") {
-      rewriteTile(player.x, player.y, "empty", canvas);
-      player.y++;
-      collide(collision_tile, canvas);
-    } 
-    player.avatar = "cat_d";
-    rewriteTile(player.x, player.y, player.avatar, canvas); 
+    collide(player.x, player.y+1, canvas);
   }
-
-  // else, no movement
-
 }
 
 function move_player_left(canvas) {
-  console.log("left");
-
+  player.avatar = "cat_l";
+  rewriteTile(player.x, player.y, player.avatar, canvas);
   if(player.x > 0) {
-    var collision_tile = tilegrid[player.y][player.x-1][0];
-    
-    // if we can pass thru, do so
-    if(collision_tile != "wall") {
-      rewriteTile(player.x, player.y, "empty", canvas);
-      player.x--;
-      collide(collision_tile, canvas);
-    } 
-    player.avatar = "cat_l";
-    rewriteTile(player.x, player.y, player.avatar, canvas); 
+    collide(player.x-1, player.y, canvas);
   }
-
-  // else, no movement
-
 }
 
 function move_player_right(canvas) {
-  console.log("right");
 
+  player.avatar = "cat_r";
+  rewriteTile(player.x, player.y, player.avatar, canvas);
   if(player.x < max_x(canvas)) {
-
-    var collision_tile = tilegrid[player.y][player.x+1][0];
-    
-    // if we can pass thru, do so
-    if(collision_tile != "wall") {
-      rewriteTile(player.x, player.y, "empty", canvas);
-      player.x++;
-      collide(collision_tile, canvas);
-    } 
-    player.avatar = "cat_r";
-    rewriteTile(player.x, player.y, player.avatar, canvas); 
+    collide(player.x+1, player.y, canvas);
   }
-
-  // else, no movement
 
 }
 
 function onKeypress(e, canvas) {
   var key = e.keyCode;
-  console.log("Key pressed: " + key);
   if(key == W) {
     move_player_up(canvas);
   }
@@ -279,7 +271,7 @@ var generateButton = document.getElementById("generateButton");
 generateButton.addEventListener("click", function () {
     var width = canvas.width/tilesize;
     var height = canvas.height/tilesize;
-    initialize_random(width, height);
+    initialize_random(width, height, level);
     draw(canvas);
 });
 
